@@ -1,0 +1,39 @@
+---
+# cp etc/init.d/* /etc/init.d/
+- name: Copy textassembler etc files to init.d
+  copy:
+    remote_src: yes
+    src: /var/www/text-assembler/etc/init.d/
+    dest: /etc/init.d/
+    mode: u+rwx
+# systemctl daemon-reload
+# systemctl enable tassemblerd
+# systemctl start tassemblerd
+- name: start and enable tassemblerd
+  systemd:
+    name: tassemblerd
+    state: started
+    enabled: yes
+    daemon-reload: yes
+# systemctl enable tassemblerzipd
+# systemctl start tassemblerzipd
+- name: start and enable tassemblerzipd
+  systemd:
+    name: tassemblerzipd
+    state: started
+    enabled: yes
+# systemctl enable tassemblerdeld
+# systemctl start tassemblerdeld
+- name: start and enable tassemblerdelpd
+  systemd:
+    name: tassemblerdelpd
+    state: started
+    enabled: yes
+# edit crontab
+- name: Add cron job to update sources and API limits
+  blockinfile:
+    create: yes
+    block: |
+      @monthly    root        /var/www/text-assembler/ta_env/bin/python /var/www/text-assembler/manage.py update_sources
+      @monthly    root        /var/www/text-assembler/ta_env/bin/python /var/www/text-assembler/manage.py update_limits
+

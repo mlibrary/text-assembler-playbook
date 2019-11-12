@@ -1,0 +1,41 @@
+---
+- name: .deb do update and upgrade
+  apt: >
+    update_cache=yes
+    cache_valid_time=1200
+    upgrade=safe
+
+- name: install required packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ basic_packages }}"
+
+- name: install Django
+  pip:
+    name: Django
+
+- name: create code directory
+  file:
+    path: /var/www/text-assembler
+    state: directory
+    mode: '0755'
+
+- name: clone repository
+  git:
+    clone: yes
+    dest: /var/www/text-assembler
+    repo: https://gitlab.msu.edu:msu-libraries/public/text-assembler.git
+
+- name: install dependencies
+  pip:
+    chdir: /var/www/text-assembler
+    virtualenv: ta_env
+    requirements: requirements.txt
+
+- name: update apache envvars
+  blockinfile:
+    dest: /etc/apache2/envvars
+    block: |
+      export LANG='en_US.UTF-8'
+      export LC_ALL='en_US.UTF-8'
