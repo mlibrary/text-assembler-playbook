@@ -13,7 +13,8 @@
 
 - name: install Django
   pip:
-    name: Django
+    executable: pip3
+    name: Django, virtualenv
 
 - name: create code directory
   file:
@@ -25,7 +26,7 @@
   git:
     clone: yes
     dest: /var/www/text-assembler
-    repo: https://gitlab.msu.edu:msu-libraries/public/text-assembler.git
+    repo: https://github.com/mlibrary/text-assembler-django.git
 
 - name: install dependencies
   pip:
@@ -35,6 +36,7 @@
 
 - name: update apache envvars
   blockinfile:
+    create: yes
     dest: /etc/apache2/envvars
     block: |
       export LANG='en_US.UTF-8'
