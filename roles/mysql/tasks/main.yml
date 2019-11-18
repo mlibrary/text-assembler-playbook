@@ -1,0 +1,13 @@
+---
+- name: Create tassembler database
+	mysql_db:
+		name: tassembler
+		state: present
+
+- name: Ensure default user is present.
+  mysql_user:
+    name: "{{ mysql_user_name }}"
+    host: 'localhost'
+    password: "{{ mysql_user_password }}"
+    priv: '*.*:ALL,GRANT'
+    state: present
