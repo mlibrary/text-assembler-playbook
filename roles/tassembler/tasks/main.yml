@@ -1,4 +1,35 @@
 ---
+# Configure application
+- name: Copy about page
+  copy:
+    src: /var/www/text-assembler/textassembler_web/templates/textassembler_web/about.html.example
+    dest: /var/www/text-assembler/textassembler_web/templates/textassembler_web/about.html
+    remote_src: yes
+
+- name: Copy footer page
+  copy:
+    src: /var/www/text-assembler/textassembler_web/templates/footer.html.example
+    dest: /var/www/text-assembler/textassembler_web/templates/footer.html
+    remote_src: yes
+
+- name: Copy base page
+  copy:
+    src: /var/www/text-assembler/textassembler_web/templates/base.html.example
+    dest: /var/www/text-assembler/textassembler_web/templates/base.html
+    remote_src: yes
+
+- name: Copy header page
+  copy:
+    src: /var/www/text-assembler/textassembler_web/templates/header.html.example
+    dest: /var/www/text-assembler/textassembler_web/templates/header.html
+    remote_src: yes
+
+- name: Copy config
+  copy:
+    src: /var/www/text-assembler/textassembler.cfg.example
+    dest: /var/www/text-assembler/textassembler.cfg
+    remote_src: yes
+
 # cp etc/init.d/* /etc/init.d/
 - name: Copy textassembler etc files to init.d
   copy:
