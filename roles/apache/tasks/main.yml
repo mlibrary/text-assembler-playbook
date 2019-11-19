@@ -1,2 +1,62 @@
 ---
-# tasks file for apache
+- name: Create apache group
+  group:
+    name: www-data
+
+- name: Create apache user
+  user:
+    name: www-data
+    append: yes
+    group: www-data
+    state: present
+
+- name: Update apache envvars
+  blockinfile:
+    create: yes
+    dest: /etc/apache2/envvars
+    block: |
+      export LANG='en_US.UTF-8'
+      export LC_ALL='en_US.UTF-8'
+      export APACHE_RUN_DIR=/var/run/apache2
+      export APACHE_LOG_DIR=/var/log/apache2
+      export APACHE_RUN_USER=www-data
+      export APACHE_RUN_GROUP=www-data
+
+- name: Ensure apache2 directory exists
+  file:
+    state: directory
+    path: /etc/apache2/
+
+- name: Copy site config file
+  template:
+    src: tassembler.conf
+    dest: /etc/apache2/sites-available/tassembler.conf
+
+- name: Enable tassembler site
+  shell: "a2ensite tassembler"
+
+- name: Disable default site
+  shell: "a2dissite 000-default"
+
+- name: Enable modules
+  shell: "a2enmod {{ item }}"
+  loop:
+    - ssl
+    - wsgi
+
+- name: Copy SSL key file
+  copy:
+    src: "{{ SSL_PRIVATE_KEY_FILE }}"
+    dest: /etc/ssl/private/textassembler.key
+
+- name: Copy SSL cert file
+  copy:
+    src: "{{ SSL_CERT_FILE }}"
+    dest: /etc/ssl/private/textassembler.crt
+
+- name: start and enable apache
+  systemd:
+    name: apache2
+    state: started
+    enabled: yes
+    daemon-reload: yes

@@ -34,10 +34,3 @@
     virtualenv: ta_env
     requirements: requirements.txt
 
-- name: update apache envvars
-  blockinfile:
-    create: yes
-    dest: /etc/apache2/envvars
-    block: |
-      export LANG='en_US.UTF-8'
-      export LC_ALL='en_US.UTF-8'
