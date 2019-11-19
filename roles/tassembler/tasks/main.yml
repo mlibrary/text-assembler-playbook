@@ -1,4 +1,23 @@
 ---
+- name: create code directory
+  file:
+    path: /var/www/text-assembler
+    state: directory
+    mode: '0755'
+
+- name: clone repository
+  git:
+    clone: yes
+    dest: /var/www/text-assembler
+    repo: https://github.com/mlibrary/text-assembler-django.git
+    version: cosign
+
+- name: install dependencies
+  pip:
+    chdir: /var/www/text-assembler
+    virtualenv: ta_env
+    requirements: requirements.txt
+
 # Configure application
 - name: Copy about page
   copy:
@@ -25,59 +44,58 @@
     remote_src: yes
 
 - name: Copy config
-  copy:
-    src: /var/www/text-assembler/textassembler.cfg.example
+  template:
+    src: textassembler.cfg.example
     dest: /var/www/text-assembler/textassembler.cfg
-    remote_src: yes
 
-# cp etc/init.d/* /etc/init.d/
+- name: Set up database
+  shell:
+    cmd: "ta_env/bin/python manage.py migrate"
+    chdir: /var/www/text-assembler
+
 - name: Copy textassembler etc files to init.d
   copy:
     remote_src: yes
     src: /var/www/text-assembler/etc/init.d/
     dest: /etc/init.d/
-# systemctl daemon-reload
-# systemctl enable tassemblerd
-# systemctl start tassemblerd
+
 - name: make tassemblerd executable
   file:
     path: /etc/init.d/tassemblerd
     mode: 0755
 - name: enable tassemblerd
   command: systemctl enable tassemblerd
-- name: start and enable tassemblerd
+- name: start tassemblerd
   systemd:
     name: tassemblerd
     state: started
     enabled: yes
     daemon-reload: yes
-# systemctl enable tassemblerzipd
-# systemctl start tassemblerzipd
+
 - name: make tassemblerzipd executable
   file:
     path: /etc/init.d/tassemblerzipd
     mode: 0755
 - name: enable tassemblerzipd
   command: systemctl enable tassemblerzipd
-- name: start and enable tassemblerzipd
+- name: start tassemblerzipd
   systemd:
     name: tassemblerzipd
     state: started
     enabled: yes
-# systemctl enable tassemblerdeld
-# systemctl start tassemblerdeld
+
 - name: make tassemblerdeld executable
   file:
     path: /etc/init.d/tassemblerdeld
     mode: 0755
 - name: enable tassemblerdeld
   command: systemctl enable tassemblerdeld
-- name: start and enable tassemblerdeld
+- name: start tassemblerdeld
   systemd:
     name: tassemblerdeld
     state: started
     enabled: yes
-# edit crontab
+
 - name: Add cron job to update sources and API limits
   blockinfile:
     create: yes
@@ -86,3 +104,25 @@
       @monthly    root        /var/www/text-assembler/ta_env/bin/python /var/www/text-assembler/manage.py update_sources
       @monthly    root        /var/www/text-assembler/ta_env/bin/python /var/www/text-assembler/manage.py update_limits
 
+- name: Create mysql script to create initial admin interface user
+  template:
+    src: admin_user.sql
+    dest: /tmp/admin_user.sql
+
+- name: Create initial admin interface user
+  mysql_db:
+    name: "{{ MYSQL_DB_NAME }}"
+    login_user: "{{ MYSQL_DB_USER }}"
+    login_password: "{{ MYSQL_DB_PASSWORD }}"
+    state: import
+    target: /tmp/admin_user.sql
+
+- name: Initialize limits in database
+  shell:
+    cmd: "ta_env/bin/python manage.py update_limits"
+    chdir: /var/www/text-assembler
+
+- name: Collect static files
+  shell:
+    cmd: "ta_env/bin/python manage.py collectstatic"
+    chdir: /var/www/text-assembler

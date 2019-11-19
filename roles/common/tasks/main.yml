@@ -3,7 +3,22 @@
   apt: >
     update_cache=yes
     cache_valid_time=1200
-    upgrade=safe
+
+- name: Specify MySQL root password before installing
+  debconf:
+    name: "mysql-server"
+    question: "mysql-server/root_password"
+    value: "{{ MYSQL_ROOT_PASSWORD | quote}}"
+    vtype: "password"
+  become: true
+
+- name: Confirm MySQL root password before installing
+  debconf:
+    name: "mysql-server"
+    question: "mysql-server/root_password_again"
+    value: "{{ MYSQL_ROOT_PASSWORD | quote}}"
+    vtype: "password"
+  become: true
 
 - name: install required packages
   package:
@@ -11,26 +26,28 @@
     state: latest
   with_items: "{{ basic_packages }}"
 
+- name: get pip3 location
+  shell: "which pip3"
+  register: pip3_location
+
+- name: symlink pip to pip3
+  file:
+    src: "{{ pip3_location.stdout }}"
+    dest: /usr/bin/pip
+    state: link
+
+- name: get python3 location
+  shell: "which python3"
+  register: python3_location
+
+- name: symlink python to python3
+  file:
+    src: "{{ python3_location.stdout }}"
+    dest: /usr/bin/python
+    state: link
+
 - name: install Django
   pip:
     executable: pip3
     name: Django, virtualenv
-
-- name: create code directory
-  file:
-    path: /var/www/text-assembler
-    state: directory
-    mode: '0755'
-
-- name: clone repository
-  git:
-    clone: yes
-    dest: /var/www/text-assembler
-    repo: https://github.com/mlibrary/text-assembler-django.git
-
-- name: install dependencies
-  pip:
-    chdir: /var/www/text-assembler
-    virtualenv: ta_env
-    requirements: requirements.txt
 

@@ -5,5 +5,8 @@
   gather_facts: False
   roles:
     - common
+    - mysql
     - apache
     - tassembler
+  vars_files:
+    - env.yml

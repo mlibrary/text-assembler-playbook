@@ -1,13 +1,48 @@
 ---
-- name: Create tassembler database
-	mysql_db:
-		name: tassembler
-		state: present
+- name: Copy the my.cnf config file
+  template:
+    src=my.cnf.j2
+    dest=/etc/mysql/my.cnf
 
-- name: Ensure default user is present.
-  mysql_user:
-    name: "{{ mysql_user_name }}"
-    host: 'localhost'
-    password: "{{ mysql_user_password }}"
-    priv: '*.*:ALL,GRANT'
+- name: Ensure MySQL is started and enabled on boot.
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- pip:
+    name: PyMySQL
+
+- name: Write root login credentials
+  copy:
+      dest: /root/.my.cnf
+      owner: root
+      group: root
+      mode: 0600
+      content: |
+          [client]
+          user=root
+          password={{ MYSQL_ROOT_PASSWORD }}
+
+- name: Create MySQL App database
+  mysql_db:
+    name: "{{ MYSQL_DB_NAME }}"
     state: present
+    login_user: root
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+
+- name: Create MySQL App user
+  mysql_user:
+    name: "{{ MYSQL_DB_USER }}"
+    host: localhost
+    password: "{{ MYSQL_DB_PASSWORD }}"
+    priv: "*.*:ALL"
+    state: present
+    login_user: root
+    login_password: "{{ MYSQL_ROOT_PASSWORD }}"
+
+- name: restart mysql
+  service: name=mysql
+           enabled=yes
+           state=restarted
+
