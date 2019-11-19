@@ -1,0 +1,109 @@
+[general]
+APP_NAME = Text Assembler
+TIME_ZONE = America/Detroit
+MAINTAINER_EMAILS = esty@umich.edu
+EMAIL_MAINTAINERS_ON_API_ERROR = false
+STORAGE_LOCATION = /mnt/textassembler
+# NOTIF_EMAIL_DOMAIN should be the end part of the email address to use for
+# constructing user email addresses. The first part will be the USER_ID_FIELD
+# returned from OAuth. Ex: schanzme@msu.edu. If blank, no notification
+# emails will be sent for completed/failed searches
+NOTIF_EMAIL_DOMAIN = umich.edu
+# If set to true, all notification emails will have the MAINTAINER_EMAILS BCC'd
+BCC_MAINTAINERS_ON_NOTIF = true
+# Sets the max number of results a search is expected to return that a 
+# non-admin is allowed to queue for.
+MAX_RESULTS_ALLOWED = 100000
+
+[processor]
+# configs related to the backend processors (download, compress, delete)
+# (60 * 5) number of seconds to wait before failing out due to the DB not being available
+DB_WAIT_TIME = 300 
+# (60 * 5) number of seconds to wait before failing out due to storage not being accessible
+STORAGE_WAIT_TIME = 300 
+# number of seconds to wait before failing out due to LN calls failing
+LN_WAIT_TIME = 30 
+# number of times to retry processing after a non-search related error
+# (i.e. database or API connection reset) before existing the processor
+NUM_PROCESSOR_RETRIES = 10
+
+[filesystem]
+# These numbers should not go over 10,000 each. Otherwise searches will not run
+# efficiently.
+MAX_SUB_DIRS_PER_DIR = 1000
+MAX_FILES_PER_DIR = 10000
+
+[database.default]
+ENGINE = django.db.backends.mysql
+NAME = {{ MYSQL_DB_NAME }}
+USER = {{ MYSQL_DB_USER }}
+PASSWORD = {{ MYSQL_DB_PASSWORD }}
+HOST = {{ MYSQL_DB_HOST }}
+PORT = 3306
+ATOMIC_REQUESTS = true
+
+[hosts]
+ALLOWED_HOSTS = {{ ALLOWED_HOSTS }}
+# PREFERRED_HOST_URL is used for notification emails to indicate the URL they should use to check their searches
+PREFERRED_HOST_URL = {{ PREFERRED_HOST_URL }}
+
+[debug]
+DEBUG = true
+# This can be set to true without DEBUG being true to allow for the log files to contain full debug information
+# without having it print to the screen, which DEBUG will do on error
+LOG_DEBUG_LEVEL = true
+
+[secretkey]
+SECRET_KEY = secretkey
+
+[lexisnexis]
+TOKEN_URL = https://auth-api.lexisnexis.com/oauth/v2/token
+CLIENT_ID = {{ LEXIS_NEXIS_CLIENT_ID }}
+CLIENT_SECRET = {{ LEXIS_NEXIS_CLIENT_SECRET }}
+SCOPE = http://oauth.lexisnexis.com/all
+API_URL = https://services-api.lexisnexis.com/v1/
+DOWNLOAD_PER_CALL = 10
+MAX_RETRY = 3
+TIMEOUT_SECONDS = 30
+# PREVIEW_FORMAT valid values: EXTRACT, FULL
+PREVIEW_FORMAT = FULL
+# The number of months completed searches should be retained
+NUM_MONTHS_KEEP_SEARCHES = 3
+
+[api.limits]
+# Settings these allows overriding the values in the X-RateLimit-Limit header 
+# Number of search-only calls we are allowed to make per minute/hour/day
+SEARCHES_PER_MINUTE = 5
+SEARCHES_PER_HOUR = 100
+SEARCHES_PER_DAY = 1000
+# Number of download ($expand=Document) calls we are allowed to make
+# per minute/hour/day
+DOWNLOADS_PER_MINUTE = 5
+DOWNLOADS_PER_HOUR = 100
+DOWNLOADS_PER_DAY = 100
+# Number of source (/sources) calls we are allowed to make
+SOURCES_PER_MINUTE = 5
+SOURCES_PER_HOUR = 100
+SOURCES_PER_DAY = 1000
+# Time we can process queued searches on weekdays (using 24-hour clock)
+WEEKDAY_START_TIME = 23:00
+WEEKDAY_END_TIME = 06:00
+# Time we can process queued searches on weekends (using 24-hour clock)
+WEEKEND_START_TIME = 00:00
+WEEKEND_END_TIME = 00:00
+
+[oauth]
+# If you want to test code without going through an OAuth setup, set this to
+# TRUE and provide a test user id to use. This cannot be used in production
+# since it would then have no way to distinguish user's searches from
+# one and other
+BYPASS = TRUE
+BYPASS_USER = testuser
+AUTH_URL = https://oauth.itservices.msu.edu/oauth/authorize
+TOKEN_URL = https://oauth.itservices.msu.edu/oauth/token
+PROFILE_URL = https://oauth.itservices.msu.edu/oauth/me
+LOGOUT_URL = https://oauth.itservices.msu.edu/oauth/logout 
+CLIENT_ID = client_id
+CLIENT_SECRET = client_secret
+REDIRECT_URL = https://textassembler.lib.msu.edu/login
+USER_ID_FIELD = msunetid

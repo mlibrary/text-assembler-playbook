@@ -1,1 +1,4 @@
 .vagrant/*
+env.yml
+roles/apache/files/*
+!roles/apache/files/.keep
