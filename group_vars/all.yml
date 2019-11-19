@@ -10,3 +10,4 @@ basic_packages:
   - libmysqlclient-dev
   - apache2
   - libapache2-mod-wsgi-py3
+  - libssl-dev
