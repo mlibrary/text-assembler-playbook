@@ -126,3 +126,8 @@
   shell:
     cmd: "ta_env/bin/python manage.py collectstatic"
     chdir: /var/www/text-assembler
+
+- name: Initialize sources in database
+  shell:
+    cmd: "ta_env/bin/python manage.py update_sources"
+    chdir: /var/www/text-assembler
